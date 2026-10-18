@@ -1,0 +1,92 @@
+# Rush CI — runs on every push to main and on every PR.
+#
+# Stages (run in parallel where possible):
+#   1. lint            — eslint
+#   2. typecheck       — tsc --noEmit (catches type errors that next
+#                       build's own check would also catch, but
+#                       separately so failures are clearer)
+#   3. test            — vitest run
+#   4. build           — next build --webpack (catches RSC/prerender
+#                       issues that tsc can't see)
+#
+# All four must pass before a PR can merge. The build stage sets the
+# minimum required env vars (JWT_SECRET + MONGODB_URI) so Next.js
+# doesn't bail on missing config; no real DB connection is made at
+# build time.
+#
+# The workflow uses Bun (matching the project's package manager).
+# Vercel auto-builds on merge to main; this CI catches PRs that
+# would fail that build.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same branch when a new push lands.
+# Saves minutes on rapid PR iteration.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run lint
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install 
+      - run: bunx tsc --noEmit
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Auth helpers throw if JWT_SECRET is missing; tests need a
+      # valid 32+ char string. The actual value doesn't matter —
+      # tests don't make real auth calls.
+      JWT_SECRET: ci-jwt-secret-for-tests-32-chars-long
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install 
+      - run: bun run test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Build-time env. No DB connection is made during `next build`,
+      # but our modules read these at import time so they must be set.
+      JWT_SECRET: ci-jwt-secret-for-build-32-chars-long-x
+      MONGODB_URI: mongodb://localhost:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install 
+      - run: bun run build

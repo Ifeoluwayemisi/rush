@@ -1,0 +1,69 @@
+{
+  "name": "Rush — Shop, Services & Rides",
+  "short_name": "Rush",
+  "description": "One app to shop from local vendors, hire service providers, and book rides. One account, multiple capabilities.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF6B1A",
+  "categories": ["shopping", "lifestyle", "business", "food", "travel"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Shop",
+      "short_name": "Shop",
+      "description": "Browse products from local vendors",
+      "url": "/?view=shop",
+      "icons": [
+        { "src": "/icons/pwa-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    },
+    {
+      "name": "Services",
+      "short_name": "Services",
+      "description": "Hire local service providers",
+      "url": "/?view=services",
+      "icons": [
+        { "src": "/icons/pwa-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    },
+    {
+      "name": "Rides",
+      "short_name": "Rides",
+      "description": "Book a bike, car, keke, or van",
+      "url": "/?view=ride",
+      "icons": [
+        { "src": "/icons/pwa-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    }
+  ]
+}
