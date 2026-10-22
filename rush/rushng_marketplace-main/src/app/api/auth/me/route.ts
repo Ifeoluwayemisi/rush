@@ -29,6 +29,12 @@ export async function GET() {
         firebaseUid: user.firebaseUid ?? null,
         name: user.name,
         email: user.email,
+        // Server-confirmed verification state. The client uses this as
+        // reliable evidence when deciding whether to show the
+        // "email verified" success banner after a /?verified=true
+        // return — the query param alone is spoofable. Read-only:
+        // PATCH above never accepts it, so clients cannot self-set it.
+        emailVerified: user.emailVerified,
         phone: user.phone,
         avatar: user.avatar,
         location: user.location,

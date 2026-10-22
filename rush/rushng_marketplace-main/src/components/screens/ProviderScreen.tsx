@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Star, MapPin, Phone, MessageCircle, Share2, Shield, Clock, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, Star, MapPin, Phone, MessageCircle, Share2, Shield, Clock, CheckCircle2, Loader2, Wrench } from "lucide-react";
 import { useRush } from "@/lib/store";
 import { CONTENT_WIDTH } from "@/lib/layout";
 import { useProvider, useCreateServiceJob } from "@/lib/hooks";
@@ -9,11 +9,12 @@ import { naira } from "@/lib/data";
 import { BackHeader } from "./CartScreen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ServiceRequestSheet } from "@/components/service/ServiceRequestSheet";
+import { ErrorState, EmptyState } from "@/components/shared/DataState";
 import { ApiError } from "@/lib/api-client";
 
 export function ProviderScreen() {
   const { params, back, navigate, pushToast } = useRush();
-  const { data, isLoading } = useProvider(params.providerId);
+  const { data, isLoading, error, refetch } = useProvider(params.providerId);
   const [tab, setTab] = useState<"services" | "about" | "portfolio">("services");
   const [requestSheetOpen, setRequestSheetOpen] = useState(false);
   const createJob = useCreateServiceJob();
@@ -29,13 +30,26 @@ export function ProviderScreen() {
     );
   }
 
+  if (error && !data) {
+    return (
+      <div className="pb-6">
+        <BackHeader title="Service provider" onBack={back} />
+        <ErrorState error={error} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
   const provider = data?.provider;
 
   if (!provider) {
     return (
       <div className="pb-6">
         <BackHeader title="Service provider" onBack={back} />
-        <p className="p-6 text-center text-sm text-ink-soft">Provider not found.</p>
+        <EmptyState
+          icon={<Wrench className="h-6 w-6" />}
+          title="Provider not found"
+          message="This profile may have been removed."
+        />
       </div>
     );
   }
@@ -58,7 +72,7 @@ export function ProviderScreen() {
   }
 
   return (
-    <div className="pb-28">
+    <div className="pb-36 lg:pb-28">
       {/* Cover */}
       <div className="relative h-36 bg-muted">
         {provider.coverImage && (
@@ -69,14 +83,15 @@ export function ProviderScreen() {
           <div className="flex justify-between">
             <button
               onClick={back}
-              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               aria-label="Go back"
             >
               <ChevronLeft className="h-5 w-5 text-ink" />
             </button>
             <button
               onClick={() => pushToast({ title: "Profile link copied" })}
-              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label="Share provider profile"
             >
               <Share2 className="h-4 w-4 text-ink" />
             </button>
@@ -109,10 +124,14 @@ export function ProviderScreen() {
             <span className="flex items-center gap-0.5 text-ink-soft">
               <MapPin className="h-3 w-3" /> {provider.location}
             </span>
-            <span className="text-ink-soft">·</span>
-            <span className="flex items-center gap-0.5 text-ink-soft">
-              <Clock className="h-3 w-3" /> ~{provider.responseTimeMin}m
-            </span>
+            {typeof provider.responseTimeMin === "number" && provider.responseTimeMin > 0 && (
+              <>
+                <span className="text-ink-soft">·</span>
+                <span className="flex items-center gap-0.5 text-ink-soft">
+                  <Clock className="h-3 w-3" /> ~{provider.responseTimeMin}m
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -120,20 +139,20 @@ export function ProviderScreen() {
         <div className="grid grid-cols-3 gap-2 mt-3">
           <StatBox value={`${provider.completedJobs}`} label="Jobs done" />
           <StatBox value={naira(provider.startingPrice)} label="Starting from" small />
-          <StatBox value={`${provider.rating || "—"}★`} label="Rating" />
+          <StatBox value={typeof provider.rating === "number" && provider.rating > 0 ? `${provider.rating}` : "—"} label="Rating" />
         </div>
 
         {/* Contact actions */}
         <div className="grid grid-cols-2 gap-2 mt-3">
           <button
             onClick={() => pushToast({ title: "Calling provider…" })}
-            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-muted text-ink text-xs font-semibold"
+            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-muted text-ink text-xs font-semibold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Phone className="h-3.5 w-3.5" /> Call
           </button>
           <button
             onClick={() => pushToast({ title: "Opening chat…" })}
-            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-muted text-ink text-xs font-semibold"
+            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-muted text-ink text-xs font-semibold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <MessageCircle className="h-3.5 w-3.5" /> Chat
           </button>
@@ -142,17 +161,19 @@ export function ProviderScreen() {
 
       {/* Tabs */}
       <div className="sticky top-0 z-20 mt-4 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className={`mx-auto ${CONTENT_WIDTH} px-4 flex gap-5`}>
+        <div className={`mx-auto ${CONTENT_WIDTH} px-4 flex gap-5`} role="tablist" aria-label="Provider sections">
           {(["services", "about", "portfolio"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`py-3 text-sm font-semibold capitalize relative ${
-                tab === t ? "text-rush" : "text-ink-soft"
+              role="tab"
+              aria-selected={tab === t}
+              className={`py-3 text-sm font-semibold capitalize relative cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                tab === t ? "text-rush-deep" : "text-ink-soft"
               }`}
             >
               {t}
-              {tab === t && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-rush rounded-full" />}
+              {tab === t && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-rush-deep rounded-full" />}
             </button>
           ))}
         </div>
@@ -177,7 +198,7 @@ export function ProviderScreen() {
                     <button
                       onClick={() => handleRequestListedService(s)}
                       disabled={createJob.isPending}
-                      className="mt-2 px-3 py-1.5 rounded-lg rush-gradient text-white text-xs font-bold shadow-rush disabled:opacity-60"
+                      className="mt-2 px-3 py-1.5 rounded-lg cta-primary text-xs font-bold disabled:opacity-60 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
                       Request
                     </button>
@@ -188,7 +209,7 @@ export function ProviderScreen() {
 
             <button
               onClick={() => setRequestSheetOpen(true)}
-              className="w-full mt-2 p-3 rounded-2xl border-2 border-dashed border-border text-xs font-semibold text-ink-soft hover:border-rush hover:text-rush transition-colors"
+              className="w-full mt-2 p-3 rounded-2xl border-2 border-dashed border-border text-xs font-semibold text-ink-soft hover:border-rush hover:text-rush transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               + Post a custom job request
             </button>
@@ -231,8 +252,8 @@ export function ProviderScreen() {
         )}
       </div>
 
-      {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-bottom">
+      {/* Sticky CTA — sits above the mobile BottomNav on small screens */}
+      <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-bottom">
         <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
           <div className="flex-1">
             <p className="text-[10px] text-ink-soft">Starting from</p>
@@ -240,7 +261,7 @@ export function ProviderScreen() {
           </div>
           <button
             onClick={() => setRequestSheetOpen(true)}
-            className="h-12 px-6 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush"
+            className="h-12 px-6 rounded-xl cta-primary font-bold text-sm"
           >
             Request service
           </button>

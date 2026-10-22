@@ -20,7 +20,7 @@ export function ShopScreen() {
 
   return (
     <div className="pb-6">
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-5 pb-1">
         <h1 className="text-xl font-extrabold text-ink tracking-tight">Shop</h1>
         <p className="text-xs text-ink-soft mt-0.5">
           {filtered.length} {filtered.length === 1 ? "item" : "items"} from{" "}
@@ -29,21 +29,23 @@ export function ShopScreen() {
       </div>
 
       {/* Search */}
-      <div className="px-4 pb-3">
+      <div className="px-4 pt-3 pb-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-soft" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search products…"
-            className="w-full bg-muted rounded-xl pl-9 pr-9 py-2.5 text-sm placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-rush/30"
+            aria-label="Search products"
+            className="w-full bg-muted rounded-xl pl-9 pr-9 py-2.5 text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-rush/30"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-muted-foreground/15 flex items-center justify-center"
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-ink/10 hover:bg-ink/20 flex items-center justify-center cursor-pointer"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3 text-ink-soft" />
             </button>
           )}
         </div>
@@ -75,7 +77,7 @@ export function ShopScreen() {
         <p className="text-xs text-ink-soft">
           {filtered.length} {filtered.length === 1 ? "item" : "items"}
         </p>
-        <button className="flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink">
+        <button className="flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink rounded-lg px-1.5 py-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rush/30">
           <SlidersHorizontal className="h-3.5 w-3.5" />
           Sort & filter
         </button>
@@ -121,10 +123,11 @@ function CategoryChip({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+      aria-pressed={active}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rush/30 ${
         active
-          ? "bg-rush text-white shadow-rush"
-          : "bg-muted text-ink-soft hover:bg-muted/70"
+          ? "bg-rush-deep text-white shadow-card"
+          : "bg-card border border-border text-ink-soft hover:border-rush/30 hover:text-ink"
       }`}
     >
       <span className="text-sm">{icon}</span>

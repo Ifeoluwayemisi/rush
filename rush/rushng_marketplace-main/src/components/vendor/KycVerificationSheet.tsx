@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type * as React from "react";
+import { useState } from "react";
 import {
-  Loader2,
+  AlertCircle,
+  CheckCircle2,
   ChevronLeft,
   GraduationCap,
-  ShieldCheck,
+  IdCard,
+  Loader2,
   Mail,
-  CheckCircle2,
-  AlertCircle,
+  ShieldCheck,
   Upload,
   X as XIcon,
-  IdCard,
 } from "lucide-react";
 import {
   Sheet,
@@ -45,7 +46,7 @@ export function KycVerificationSheet({ open, onOpenChange, kyc }: KycVerificatio
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>Vendor verification</SheetTitle>
+          <SheetTitle className="text-base font-bold text-ink">Vendor verification</SheetTitle>
         </SheetHeader>
         {open && (
           <KycFlow key={kyc?.verificationTier ?? "fresh"} kyc={kyc} onDone={() => onOpenChange(false)} />
@@ -92,7 +93,6 @@ function KycFlow({ kyc, onDone }: { kyc: VendorKycPrivate | null; onDone: () => 
 
       {segment === "student-otp" && (
         <StudentOtpScreen
-          kyc={kyc}
           email={studentEmail}
           onBack={() => setSegment("student-email")}
           onVerified={() => handleStudentVerified(studentEmail)}
@@ -158,7 +158,7 @@ function ChoiceScreen({
 
       <ChoiceCard
         icon={<GraduationCap className="h-5 w-5" />}
-        tone="blue"
+        tone="student"
         title="I'm a LASU student"
         body="Verify with your @st.lasu.edu.ng email (format: name.surname<matric>). Instant — just enter the code we send you, then upload your NIN."
         cta="Verify as student"
@@ -167,7 +167,7 @@ function ChoiceScreen({
 
       <ChoiceCard
         icon={<ShieldCheck className="h-5 w-5" />}
-        tone="green"
+        tone="external"
         title="Other Users"
         body="Upload your NIN slip and enter your 11-digit NIN number. Reviewed by Rush within 1-2 business days."
         cta="Submit NIN for review"
@@ -181,22 +181,22 @@ function ChoiceCard({
   icon, tone, title, body, cta, onClick,
 }: {
   icon: React.ReactNode;
-  tone: "blue" | "purple" | "green";
+  tone: "student" | "external";
   title: string;
   body: string;
   cta: string;
   onClick: () => void;
 }) {
   const toneCls = {
-    blue: "bg-blue-50 text-blue-700 ring-blue-200",
-    purple: "bg-purple-50 text-purple-700 ring-purple-200",
-    green: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    student: "bg-rush-soft text-rush-deep ring-rush/20",
+    external: "bg-success/15 text-success ring-success/25",
   }[tone];
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="w-full text-left rounded-2xl bg-card border border-border p-4 hover:border-rush/40 hover:shadow-card transition-all"
+      className="w-full text-left rounded-2xl bg-card border border-border p-4 hover:border-rush/40 hover:shadow-card transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <div className="flex items-start gap-3">
         <div className={`h-10 w-10 rounded-xl flex items-center justify-center ring-1 shrink-0 ${toneCls}`}>
@@ -205,7 +205,7 @@ function ChoiceCard({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-ink">{title}</p>
           <p className="text-xs text-ink-soft mt-1 leading-snug">{body}</p>
-          <p className="text-xs font-semibold text-rush mt-2">{cta} →</p>
+          <p className="text-xs font-semibold text-rush-deep mt-2">{cta} →</p>
         </div>
       </div>
     </button>
@@ -246,7 +246,7 @@ function StudentEmailScreen({
       const res = await sendOtp.mutateAsync({ institutionalEmail: trimmed, role: "STUDENT" });
       pushToast({ title: "Code sent", description: `Check ${res.maskedEmail} (and spam folder).` });
       onOtpSent(trimmed);
-    } catch (err: any) {
+    } catch (err) {
       pushToast({ title: "Couldn't send code", description: err instanceof ApiError ? err.message : undefined });
     }
   }
@@ -254,7 +254,7 @@ function StudentEmailScreen({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <BackRow onBack={onBack} title="Student verification" />
-      <div className="rounded-xl bg-blue-50 ring-1 ring-blue-200 p-3 text-xs text-blue-800">
+      <div className="rounded-xl bg-rush-soft/60 ring-1 ring-rush/20 p-3 text-xs text-rush-deep">
         <p className="flex items-center gap-1.5 font-semibold mb-1">
           <Mail className="h-3.5 w-3.5" /> Enter your LASU student email
         </p>
@@ -280,7 +280,7 @@ function StudentEmailScreen({
         <button
           type="submit"
           disabled={sendOtp.isPending || !email.trim()}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-60"
+          className="cta-primary w-full h-12 rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none"
         >
           {sendOtp.isPending ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Sending code…</>
@@ -296,9 +296,8 @@ function StudentEmailScreen({
 // ─── Student OTP screen ───────────────────────────────────────────────────
 
 function StudentOtpScreen({
-  kyc, email, onBack, onVerified,
+  email, onBack, onVerified,
 }: {
-  kyc: VendorKycPrivate | null;
   email: string;
   onBack: () => void;
   onVerified: () => void;
@@ -314,7 +313,7 @@ function StudentOtpScreen({
     try {
       await verifyOtp.mutateAsync({ institutionalEmail: email, otp, role: "STUDENT" });
       onVerified();
-    } catch (err: any) {
+    } catch (err) {
       pushToast({ title: "Verification failed", description: err instanceof ApiError ? err.message : undefined });
     }
   }
@@ -325,7 +324,7 @@ function StudentOtpScreen({
       const res = await sendOtp.mutateAsync({ institutionalEmail: email, role: "STUDENT" });
       pushToast({ title: "New code sent", description: `Check ${res.maskedEmail}.` });
       setOtp("");
-    } catch (err: any) {
+    } catch (err) {
       pushToast({ title: "Couldn't resend", description: err instanceof ApiError ? err.message : undefined });
     }
   }
@@ -344,21 +343,28 @@ function StudentOtpScreen({
           placeholder="123456"
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          className="text-center text-2xl tracking-[0.5em] font-bold"
+          className="text-center text-2xl tracking-[0.5em] font-bold h-12"
           disabled={verifyOtp.isPending}
           autoFocus
         />
       </Field>
       <div className="flex items-center justify-between">
-        <button type="button" onClick={handleResend} disabled={sendOtp.isPending}
-          className="text-xs font-semibold text-rush disabled:opacity-50">
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={sendOtp.isPending}
+          className="text-xs font-semibold text-rush-deep hover:underline disabled:opacity-50 cursor-pointer"
+        >
           {sendOtp.isPending ? "Sending…" : "Resend code"}
         </button>
         <span className="text-[11px] text-ink-soft">Code expires in 10 minutes</span>
       </div>
       <SheetFooter>
-        <button type="submit" disabled={verifyOtp.isPending || otp.length !== 6}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={verifyOtp.isPending || otp.length !== 6}
+          className="cta-primary w-full h-12 rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none"
+        >
           {verifyOtp.isPending ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Verifying…</>
           ) : (
@@ -419,8 +425,8 @@ function NinUploadScreen({
       setIdCardUrl(res.url);
       setUploadedFileSize(res.size);
       pushToast({ title: "NIN slip uploaded" });
-    } catch (err: any) {
-      pushToast({ title: "Upload failed", description: err?.message });
+    } catch (err) {
+      pushToast({ title: "Upload failed", description: err instanceof Error ? err.message : undefined });
     } finally {
       setUploadingId(false);
     }
@@ -453,7 +459,7 @@ function NinUploadScreen({
         ninNumber: sanitizedNin,
       });
       onSubmitted();
-    } catch (err: any) {
+    } catch (err) {
       pushToast({ title: "Submission failed", description: err instanceof ApiError ? err.message : undefined });
     }
   }
@@ -468,8 +474,11 @@ function NinUploadScreen({
         {idCardUrl ? (
           <div className="relative rounded-xl overflow-hidden border border-border">
             <img src={idCardUrl} alt="NIN slip" className="w-full max-h-48 object-cover" />
-            <button type="button" onClick={() => setIdCardUrl("")}
-              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/90 flex items-center justify-center shadow-sm">
+            <button
+              type="button"
+              onClick={() => setIdCardUrl("")}
+              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/90 flex items-center justify-center shadow-sm cursor-pointer"
+            >
               <XIcon className="h-4 w-4 text-destructive" />
             </button>
             {uploadedFileSize > 0 && (
@@ -479,7 +488,7 @@ function NinUploadScreen({
             )}
           </div>
         ) : (
-          <label className="block">
+          <label className="block cursor-pointer">
             <div className="rounded-xl border-2 border-dashed border-border hover:border-rush hover:bg-rush-soft/40 transition-colors p-6 flex flex-col items-center gap-2 cursor-pointer">
               {uploadingId ? (
                 <Loader2 className="h-6 w-6 animate-spin text-rush" />
@@ -499,7 +508,7 @@ function NinUploadScreen({
       {/* NIN number input */}
       <Field label="NIN number (11 digits)">
         <div className="relative">
-          <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-soft" />
+          <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-soft pointer-events-none" />
           <Input
             inputMode="numeric"
             pattern="[0-9]*"
@@ -541,8 +550,11 @@ function NinUploadScreen({
       )}
 
       <SheetFooter>
-        <button type="submit" disabled={submitExternal.isPending || !idCardUrl || ninNumber.length !== 11}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={submitExternal.isPending || !idCardUrl || ninNumber.length !== 11}
+          className="cta-primary w-full h-12 rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none"
+        >
           {submitExternal.isPending ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
           ) : (
@@ -571,8 +583,8 @@ function DoneScreen({
     <div className="space-y-4">
       {isApproved && (
         <div className="text-center py-4">
-          <div className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="h-9 w-9 text-emerald-600" />
+          <div className="h-16 w-16 rounded-full bg-success/15 flex items-center justify-center mx-auto mb-3">
+            <CheckCircle2 className="h-9 w-9 text-success" />
           </div>
           <h3 className="text-base font-bold text-ink">You're verified!</h3>
           <p className="text-sm text-ink-soft mt-1">
@@ -587,8 +599,8 @@ function DoneScreen({
       )}
       {isPending && (
         <div className="text-center py-4">
-          <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
-            <Loader2 className="h-9 w-9 text-amber-600" />
+          <div className="h-16 w-16 rounded-full bg-warning/15 flex items-center justify-center mx-auto mb-3">
+            <Loader2 className="h-9 w-9 text-warning" />
           </div>
           <h3 className="text-base font-bold text-ink">Under review</h3>
           <p className="text-sm text-ink-soft mt-1">
@@ -607,15 +619,21 @@ function DoneScreen({
               {kyc?.rejectionReason || "Your last submission couldn't be approved."}
             </p>
           </div>
-          <button onClick={onReSubmit}
-            className="w-full py-3 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush">
+          <button
+            type="button"
+            onClick={onReSubmit}
+            className="cta-primary w-full h-12 rounded-xl text-sm"
+          >
             Re-submit verification
           </button>
         </>
       )}
       {(isApproved || isPending) && (
-        <button onClick={onDone}
-          className="w-full py-3 rounded-xl bg-card border border-border text-ink font-semibold text-sm">
+        <button
+          type="button"
+          onClick={onDone}
+          className="cta-secondary w-full h-12 rounded-xl text-sm"
+        >
           {isApproved ? "Done" : "Close"}
         </button>
       )}
@@ -628,9 +646,13 @@ function DoneScreen({
 function BackRow({ onBack, title }: { onBack: () => void; title: string }) {
   return (
     <div className="flex items-center gap-2 -mt-1">
-      <button onClick={onBack}
-        className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center" aria-label="Back">
-        <ChevronLeft className="h-4 w-4" />
+      <button
+        type="button"
+        onClick={onBack}
+        className="h-8 w-8 rounded-full bg-card border border-border shadow-card flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+        aria-label="Back"
+      >
+        <ChevronLeft className="h-4 w-4 text-ink" />
       </button>
       <p className="text-sm font-bold text-ink">{title}</p>
     </div>

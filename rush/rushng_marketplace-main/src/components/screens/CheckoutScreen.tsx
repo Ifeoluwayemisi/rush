@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { ChevronLeft, Bike, Store, Wallet, CreditCard, Banknote, Landmark, MapPin, Loader2 } from "lucide-react";
+import { useState, useMemo, type ReactNode } from "react";
+import { Bike, Store, Wallet, CreditCard, Banknote, Landmark, MapPin, ShoppingBag, Loader2 } from "lucide-react";
 import { useRush } from "@/lib/store";
 import { CONTENT_WIDTH } from "@/lib/layout";
 import { useStores, useCreateOrder } from "@/lib/hooks";
 import { naira } from "@/lib/data";
 import type { FulfilmentType, PaymentMethod } from "@/lib/types";
 import { BackHeader } from "./CartScreen";
+import { EmptyState } from "@/components/shared/Cards";
 import { api } from "@/lib/api-client";
 
 export function CheckoutScreen() {
@@ -41,7 +42,11 @@ export function CheckoutScreen() {
     return (
       <div className="pb-6">
         <BackHeader title="Checkout" onBack={back} />
-        <p className="p-6 text-center text-sm text-ink-soft">Your cart is empty.</p>
+        <EmptyState
+          icon={<ShoppingBag className="h-6 w-6" />}
+          title="Your cart is empty"
+          description="Add products to your cart before checking out."
+        />
       </div>
     );
   }
@@ -111,10 +116,10 @@ export function CheckoutScreen() {
         description: `Your order ${res.order.code} has been confirmed.`,
       });
       navigate("order-tracking", { orderId: res.order.id });
-    } catch (err: any) {
+    } catch (err) {
       pushToast({
         title: "Failed to place order",
-        description: err.message,
+        description: err instanceof Error ? err.message : undefined,
       });
     } finally {
       setPaying(false);
@@ -160,16 +165,20 @@ export function CheckoutScreen() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   rows={2}
-                  className="flex-1 bg-transparent text-sm text-ink resize-none focus:outline-none placeholder:text-ink-soft"
+                  aria-label="Delivery address"
+                  className="flex-1 min-w-0 bg-transparent text-sm text-ink resize-none placeholder:text-ink-soft rounded focus:outline-none focus:ring-2 focus:ring-rush/30"
                   placeholder="Enter full delivery address"
                 />
               </div>
               <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
                 <input
+                  type="tel"
                   defaultValue={user?.phone || ""}
-                  className="flex-1 bg-transparent text-xs text-ink-soft focus:outline-none"
+                  aria-label="Phone number"
+                  className="flex-1 min-w-0 bg-transparent text-xs text-ink-soft placeholder:text-ink-soft rounded focus:outline-none focus:ring-2 focus:ring-rush/30"
+                  placeholder="Phone"
                 />
-                <span className="text-[10px] text-ink-soft">Phone</span>
+                <span className="text-[10px] text-ink-soft shrink-0">Phone</span>
               </div>
             </div>
           </section>
@@ -213,24 +222,26 @@ export function CheckoutScreen() {
         {/* Order summary */}
         <section>
           <h2 className="text-sm font-bold text-ink mb-2">Order summary</h2>
-          <div className="rounded-xl bg-muted/40 p-3 space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="text-ink-soft">Items ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
-              <span className="font-semibold text-ink">{naira(subtotal)}</span>
+          <div className="rounded-2xl bg-card border border-border shadow-card p-4">
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-ink-soft">Items ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
+                <span className="font-semibold text-ink">{naira(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-ink-soft">Delivery fee</span>
+                <span className="font-semibold text-ink">
+                  {deliveryFee === 0 ? "Free" : naira(deliveryFee)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-ink-soft">Service fee (5%)</span>
+                <span className="font-semibold text-ink">{naira(serviceFee)}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-ink-soft">Delivery fee</span>
-              <span className="font-semibold text-ink">
-                {deliveryFee === 0 ? "Free" : naira(deliveryFee)}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-ink-soft">Service fee (5%)</span>
-              <span className="font-semibold text-ink">{naira(serviceFee)}</span>
-            </div>
-            <div className="border-t border-border pt-1.5 flex justify-between">
+            <div className="mt-3 rounded-xl bg-rush-soft/60 px-3 py-2 flex justify-between items-center">
               <span className="text-sm font-bold text-ink">Total</span>
-              <span className="text-base font-extrabold text-rush">{naira(total)}</span>
+              <span className="text-base font-extrabold text-rush-deep">{naira(total)}</span>
             </div>
           </div>
         </section>
@@ -239,14 +250,14 @@ export function CheckoutScreen() {
       {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-bottom">
         <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
-          <div className="flex-1">
-            <p className="text-[10px] text-ink-soft">Pay with {payment.replace("_", " ").toLowerCase()}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-ink-soft truncate">Pay with {payment.replace("_", " ").toLowerCase()}</p>
             <p className="text-base font-extrabold text-ink">{naira(total)}</p>
           </div>
           <button
             onClick={handlePlaceOrder}
             disabled={createOrderMut.isPending || paying}
-            className="h-12 px-6 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-60 flex items-center gap-2"
+            className="cta-primary h-12 px-5 sm:px-6 rounded-xl text-sm shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {(createOrderMut.isPending || paying) && <Loader2 className="h-4 w-4 animate-spin" />}
             {createOrderMut.isPending ? "Placing…" : paying ? "Paying…" : "Place order"}
@@ -267,7 +278,7 @@ function OptionTile({
 }: {
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   subtitle: string;
   meta: string;
@@ -275,7 +286,8 @@ function OptionTile({
   return (
     <button
       onClick={onClick}
-      className={`flex items-start gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
+      aria-pressed={active}
+      className={`flex items-start gap-3 p-3 rounded-2xl border-2 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         active
           ? "border-rush bg-rush-soft/40"
           : "border-border bg-card hover:border-ink-soft/30"
@@ -283,7 +295,7 @@ function OptionTile({
     >
       <div
         className={`h-9 w-9 rounded-xl flex items-center justify-center ${
-          active ? "rush-gradient text-white" : "bg-muted text-ink-soft"
+          active ? "bg-rush-deep text-white" : "bg-muted text-ink-soft"
         }`}
       >
         {icon}
@@ -308,20 +320,21 @@ function PaymentTile({
 }: {
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   meta: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2.5 p-3 rounded-xl border-2 text-left transition-all ${
+      aria-pressed={active}
+      className={`flex items-center gap-2.5 p-3 rounded-xl border-2 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         active ? "border-rush bg-rush-soft/40" : "border-border bg-card hover:border-ink-soft/30"
       }`}
     >
       <div
-        className={`h-7 w-7 rounded-lg flex items-center justify-center ${
-          active ? "bg-rush text-white" : "bg-muted text-ink-soft"
+        className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${
+          active ? "bg-rush-deep text-white" : "bg-muted text-ink-soft"
         }`}
       >
         {icon}

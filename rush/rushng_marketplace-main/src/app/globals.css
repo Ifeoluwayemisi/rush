@@ -117,6 +117,15 @@
   }
   html {
     -webkit-tap-highlight-color: transparent;
+    /* In-page anchors (landing nav) scroll smoothly and never land
+     * under the sticky header. Reduced-motion users jump instantly. */
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 
@@ -156,13 +165,15 @@
    * vivid brand orange as the surface but use the warm ink token for the
    * label (≈5.6:1) so the identity is unchanged while contrast passes.
    * They are opt-in utilities — .rush-gradient is intentionally left
-   * untouched so unrelated screens are not restyled. */
+   * untouched so unrelated screens are not restyled.
+   * Corner radius is intentionally NOT set here: call sites choose the
+   * shape (rounded-xl for content CTAs, rounded-full for bar/banner CTAs)
+   * to match the reference design. */
   .cta-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 9999px;
     background-color: var(--rush);
     color: var(--ink);
     font-weight: 700;
@@ -186,7 +197,6 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 9999px;
     background-color: var(--card);
     border: 1px solid var(--border);
     color: var(--ink);

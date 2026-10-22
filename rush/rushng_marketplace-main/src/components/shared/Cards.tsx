@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { Star, MapPin, ChevronRight } from "lucide-react";
 import type { Product, VendorProfile } from "@/lib/types";
 import { naira } from "@/lib/data";
@@ -18,11 +19,11 @@ export function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-base font-bold text-ink tracking-tight">{title}</h2>
+      <h2 className="text-sm font-extrabold text-ink tracking-tight sm:text-base">{title}</h2>
       {action && (
         <button
           onClick={onAction}
-          className="text-xs font-semibold text-rush flex items-center gap-0.5 hover:gap-1 transition-all"
+          className="text-xs font-bold text-rush flex items-center gap-0.5 hover:gap-1 transition-all cursor-pointer"
         >
           {action}
           <ChevronRight className="h-3.5 w-3.5" />
@@ -49,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <button
       onClick={() => navigate("product", { productId: product.id })}
-      className="flex flex-col text-left group"
+      className="flex flex-col text-left group cursor-pointer rounded-2xl bg-card border border-border shadow-card p-2 transition-all hover:shadow-md hover:border-rush/30"
     >
       <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
         {primaryImage ? (
@@ -65,7 +66,7 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         {product.compareAtPrice && product.compareAtPrice > 0 && (
-          <span className="absolute top-1.5 left-1.5 bg-rush text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+          <span className="absolute top-1.5 left-1.5 bg-rush-deep text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
           </span>
         )}
@@ -110,7 +111,7 @@ export function VendorCard({ vendor }: { vendor: VendorProfile }) {
   return (
     <button
       onClick={() => navigate("store", { storeSlug: vendor.slug })}
-      className="flex flex-col text-left rounded-2xl overflow-hidden bg-card border border-border shadow-card group"
+      className="flex flex-col text-left rounded-2xl overflow-hidden bg-card border border-border shadow-card group cursor-pointer transition-all hover:shadow-md hover:border-rush/30"
     >
       <div className="relative h-24 bg-muted">
         {vendor.coverImage ? (
@@ -189,32 +190,35 @@ export function EmptyState({
   description,
   actionLabel,
   onAction,
+  action,
 }: {
   icon?: React.ReactNode;
   title: string;
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  action?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
       {icon && (
-        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4 text-ink-soft">
+        <div className="h-16 w-16 rounded-full bg-rush-soft text-rush-deep flex items-center justify-center mb-4">
           {icon}
         </div>
       )}
-      <p className="text-base font-bold text-ink">{title}</p>
+      <p className="text-base font-extrabold text-ink">{title}</p>
       {description && (
         <p className="text-sm text-ink-soft mt-1 max-w-xs">{description}</p>
       )}
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="mt-4 px-5 py-2.5 rounded-xl rush-gradient text-white font-semibold text-sm shadow-rush"
+          className="mt-4 cta-primary rounded-xl px-5 py-2.5 text-sm cursor-pointer"
         >
           {actionLabel}
         </button>
       )}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }

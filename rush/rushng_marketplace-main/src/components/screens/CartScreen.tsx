@@ -1,10 +1,16 @@
 "use client";
 
-import { ChevronLeft, Trash2, Minus, Plus, ShoppingBag, Store } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, Store } from "lucide-react";
 import { useRush } from "@/lib/store";
 import { CONTENT_WIDTH } from "@/lib/layout";
 import { naira } from "@/lib/data";
 import { EmptyState } from "@/components/shared/Cards";
+import { BackHeader } from "@/components/shared/BackHeader";
+
+// BackHeader moved to @/components/shared/BackHeader; re-exported here
+// so existing `import { BackHeader } from "./CartScreen"` call sites
+// keep working unchanged.
+export { BackHeader };
 
 export function CartScreen() {
   const { cart, updateQuantity, removeFromCart, cartSubtotal, navigate, back } = useRush();
@@ -43,7 +49,7 @@ export function CartScreen() {
               <Store className="h-4 w-4 text-rush" />
               <button
                 onClick={() => navigate("store", { storeSlug: items[0].vendorId })}
-                className="text-xs font-bold text-ink hover:text-rush"
+                className="text-xs font-bold text-ink hover:text-rush cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded"
               >
                 {items[0].vendorName}
               </button>
@@ -51,32 +57,34 @@ export function CartScreen() {
             <div className="divide-y divide-border">
               {items.map((item) => (
                 <div key={item.productId} className="flex items-center gap-3 p-3">
-                  <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted shrink-0">
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden bg-muted shrink-0">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-ink line-clamp-2">{item.name}</p>
                     <p className="text-sm font-bold text-rush mt-0.5">{naira(item.price)}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <button
                       onClick={() => removeFromCart(item.productId)}
-                      className="text-ink-soft hover:text-destructive"
-                      aria-label="Remove"
+                      className="p-1.5 rounded-lg text-ink-soft hover:text-destructive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      aria-label={`Remove ${item.name} from cart`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
-                    <div className="flex items-center gap-1.5 bg-muted rounded-md p-0.5">
+                    <div className="flex items-center gap-1 bg-muted rounded-md p-0.5">
                       <button
                         onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="h-6 w-6 rounded bg-background flex items-center justify-center shadow-sm"
+                        className="h-7 w-7 rounded bg-background flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                        aria-label={`Decrease quantity of ${item.name}`}
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
+                      <span className="text-xs font-bold w-5 text-center" aria-live="polite">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="h-6 w-6 rounded bg-background flex items-center justify-center shadow-sm"
+                        className="h-7 w-7 rounded bg-background flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                        aria-label={`Increase quantity of ${item.name}`}
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -91,18 +99,20 @@ export function CartScreen() {
 
       {/* Summary */}
       <div className="px-4 mt-4">
-        <div className="rounded-2xl bg-rush-soft/40 border border-rush/20 p-4 space-y-1.5">
-          <div className="flex justify-between text-xs">
-            <span className="text-ink-soft">Subtotal</span>
-            <span className="font-semibold text-ink">{naira(subtotal)}</span>
+        <div className="rounded-2xl bg-card border border-border shadow-card p-4">
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Subtotal</span>
+              <span className="font-semibold text-ink">{naira(subtotal)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Delivery</span>
+              <span className="font-semibold text-ink">Calculated at checkout</span>
+            </div>
           </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-ink-soft">Delivery</span>
-            <span className="font-semibold text-ink">Calculated at checkout</span>
-          </div>
-          <div className="border-t border-rush/20 pt-1.5 flex justify-between">
+          <div className="mt-3 rounded-xl bg-rush-soft/60 px-3 py-2 flex justify-between items-center">
             <span className="text-sm font-bold text-ink">Total</span>
-            <span className="text-base font-extrabold text-rush">{naira(subtotal)}</span>
+            <span className="text-base font-extrabold text-rush-deep">{naira(subtotal)}</span>
           </div>
         </div>
       </div>
@@ -110,34 +120,17 @@ export function CartScreen() {
       {/* CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-bottom">
         <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] text-ink-soft">Total</p>
-            <p className="text-base font-extrabold text-ink">{naira(subtotal)}</p>
+            <p className="text-base font-extrabold text-ink truncate">{naira(subtotal)}</p>
           </div>
           <button
             onClick={() => navigate("checkout")}
-            className="h-12 px-6 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush"
+            className="cta-primary h-12 px-6 rounded-xl text-sm shrink-0"
           >
             Checkout
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function BackHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
-      <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
-        <button
-          onClick={onBack}
-          className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-base font-bold text-ink">{title}</h1>
       </div>
     </div>
   );

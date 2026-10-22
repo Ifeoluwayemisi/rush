@@ -25,17 +25,15 @@ export function BottomNav() {
               <button
                 key={tab.id}
                 onClick={() => navigate("sell")}
-                className="flex flex-col items-center justify-center py-1.5 gap-0.5 group"
+                className="flex flex-col items-center justify-center py-1.5 gap-0.5 group cursor-pointer"
                 aria-label="Sell or earn on Rush"
               >
                 <div
-                  className={`h-9 w-9 rounded-full flex items-center justify-center transition-all ${
-                    isActive
-                      ? "rush-gradient shadow-rush scale-105"
-                      : "rush-gradient shadow-rush group-active:scale-95"
+                  className={`h-9 w-9 rounded-full flex items-center justify-center transition-all cta-primary ${
+                    isActive ? "scale-105" : "group-active:scale-95"
                   }`}
                 >
-                  <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
+                  <Plus className="h-5 w-5" strokeWidth={2.5} />
                 </div>
                 <span
                   className={`text-[10px] font-semibold ${
@@ -52,7 +50,7 @@ export function BottomNav() {
             <button
               key={tab.id}
               onClick={() => navigate(tab.id)}
-              className="flex flex-col items-center justify-center py-1.5 gap-0.5 group"
+              className="flex flex-col items-center justify-center py-1.5 gap-0.5 group cursor-pointer"
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
             >

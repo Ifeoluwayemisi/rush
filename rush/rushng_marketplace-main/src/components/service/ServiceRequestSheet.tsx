@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,7 @@ function ServiceRequestForm({
   const [location, setLocation] = useState(defaultLocation || "");
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
@@ -99,7 +100,13 @@ function ServiceRequestForm({
     <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-3.5">
       <label className="block">
         <span className="block text-xs font-semibold text-ink-soft mb-1">What do you need done?</span>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Fix kitchen sink leak" />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Fix kitchen sink leak"
+          aria-invalid={!!error || undefined}
+          aria-describedby={error ? "service-request-error" : undefined}
+        />
       </label>
 
       <label className="block">
@@ -109,26 +116,44 @@ function ServiceRequestForm({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Give as much detail as you can — this helps the provider quote accurately."
           rows={4}
+          aria-invalid={!!error || undefined}
+          aria-describedby={error ? "service-request-error" : undefined}
         />
       </label>
 
       <label className="block">
         <span className="block text-xs font-semibold text-ink-soft mb-1">Location</span>
-        <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Where should this happen?" />
+        <Input
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Where should this happen?"
+          aria-invalid={!!error || undefined}
+          aria-describedby={error ? "service-request-error" : undefined}
+        />
       </label>
 
       <label className="block">
         <span className="block text-xs font-semibold text-ink-soft mb-1">Your budget (₦, optional)</span>
-        <Input type="number" min="0" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Helps the provider quote fairly" />
+        <Input
+          type="number"
+          min="0"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          placeholder="Helps the provider quote fairly"
+        />
       </label>
 
-      {error && <p className="text-xs font-semibold text-destructive">{error}</p>}
+      {error && (
+        <p id="service-request-error" role="alert" className="text-xs font-semibold text-destructive">
+          {error}
+        </p>
+      )}
 
       <SheetFooter className="px-0 pt-1">
         <button
           type="submit"
           disabled={createJob.isPending}
-          className="w-full py-3 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-60 flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl cta-primary font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2"
         >
           {createJob.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Send request

@@ -64,7 +64,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
             <div className="relative" ref={bellRef}>
               <button
                 onClick={user ? handleBellClick : () => pushToast({ title: "Sign in to see notifications" })}
-                className="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                className="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="h-5 w-5 text-ink-soft" />
@@ -80,7 +80,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
                     <p className="text-sm font-bold text-ink">Notifications</p>
                     <button
                       onClick={() => setBellOpen(false)}
-                      className="text-ink-soft hover:text-ink"
+                      className="text-ink-soft hover:text-ink cursor-pointer"
                       aria-label="Close"
                     >
                       <X className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
             {user ? (
               <button
                 onClick={() => navigate("account")}
-                className="rounded-full ring-2 ring-rush/20 overflow-hidden"
+                className="rounded-full ring-2 ring-rush/20 overflow-hidden cursor-pointer"
                 aria-label="Account"
               >
                 {user.avatar ? (
@@ -127,7 +127,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
             ) : (
               <button
                 onClick={() => navigate("account")}
-                className="h-9 px-3 rounded-full rush-gradient text-white text-xs font-bold shadow-rush flex items-center gap-1"
+                className="h-9 px-3 rounded-full cta-primary text-xs flex items-center gap-1 cursor-pointer"
               >
                 <LogIn className="h-3.5 w-3.5" /> Sign in
               </button>
@@ -139,7 +139,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
           <>
             <button
               onClick={() => navigate("search")}
-              className="w-full flex items-center gap-2.5 bg-muted rounded-xl px-3.5 py-2.5 text-left hover:bg-muted/80 transition-colors"
+              className="w-full flex items-center gap-2.5 bg-muted rounded-xl px-3.5 py-2.5 text-left hover:bg-muted/80 transition-colors cursor-pointer"
             >
               <Search className="h-4 w-4 text-ink-soft" />
               <span className="text-sm text-ink-soft">
@@ -152,7 +152,7 @@ export function TopBar({ hideSearch = false }: { hideSearch?: boolean }) {
               <span className="font-medium">Deliver to</span>
               <button
                 onClick={() => navigate("account")}
-                className="font-semibold text-ink underline-offset-2 hover:underline"
+                className="font-semibold text-ink underline-offset-2 hover:underline cursor-pointer"
               >
                 {user?.location || "Lagos"}
               </button>

@@ -1,11 +1,31 @@
 "use client";
 
+import type * as React from "react";
 import { useState } from "react";
-import { ChevronLeft, Store, Check, ChevronRight, MapPin, Loader2 } from "lucide-react";
+import {
+  Bike,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  MapPin,
+  Store,
+  Wrench,
+} from "lucide-react";
 import { useRush } from "@/lib/store";
 import { CONTENT_WIDTH } from "@/lib/layout";
 import { useOnboardVendor, useOnboardProvider, useOnboardRider } from "@/lib/hooks";
 import { SHOP_CATEGORIES } from "@/lib/data";
+
+const inputCls =
+  "w-full bg-muted rounded-xl border border-border/70 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft outline-none transition focus:border-rush/40 focus:bg-card focus:ring-2 focus:ring-rush/20 cursor-text disabled:opacity-50 disabled:cursor-not-allowed";
+
+const tileCls = (active: boolean) =>
+  `rounded-xl border-2 text-center transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+    active
+      ? "border-rush bg-rush-soft/60 shadow-card"
+      : "border-border hover:border-ink-soft/30"
+  }`;
 
 // ============== VENDOR ONBOARDING ==============
 export function OnboardingVendorScreen() {
@@ -39,14 +59,17 @@ export function OnboardingVendorScreen() {
       });
       pushToast({ title: "Store created!", description: "Welcome to Rush, vendor." });
       navigate("vendor-dashboard");
-    } catch (err: any) {
-      pushToast({ title: "Failed to create store", description: err.message });
+    } catch (err) {
+      pushToast({
+        title: "Failed to create store",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
   return (
     <div className="pb-32 min-h-screen">
-      <BackHeader onBack={prev} title="Open your store" step={step} total={total} />
+      <BackHeader onBack={prev} title="Open your store" step={step} total={total} icon={<Store className="h-4 w-4" />} />
 
       <div className="px-4 pt-4">
         {step === 1 && (
@@ -56,7 +79,7 @@ export function OnboardingVendorScreen() {
                 value={data.businessName}
                 onChange={(e) => setData({ ...data, businessName: e.target.value })}
                 placeholder="e.g. Campus Gadgets"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Category">
@@ -64,10 +87,9 @@ export function OnboardingVendorScreen() {
                 {SHOP_CATEGORIES.slice(0, 6).map((c) => (
                   <button
                     key={c.id}
+                    type="button"
                     onClick={() => setData({ ...data, category: c.id })}
-                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 text-center transition-all ${
-                      data.category === c.id ? "border-rush bg-rush-soft/40" : "border-border"
-                    }`}
+                    className={`flex flex-col items-center gap-1 p-2.5 ${tileCls(data.category === c.id)}`}
                   >
                     <span className="text-lg">{c.icon}</span>
                     <span className="text-[10px] font-semibold text-ink">{c.label}</span>
@@ -81,7 +103,7 @@ export function OnboardingVendorScreen() {
                 onChange={(e) => setData({ ...data, description: e.target.value })}
                 placeholder="What do you sell? Why should customers choose you?"
                 rows={3}
-                className="input resize-none"
+                className={`${inputCls} resize-none cursor-text`}
               />
             </Field>
           </Step>
@@ -91,12 +113,12 @@ export function OnboardingVendorScreen() {
           <Step title="Where are you located?" sub="Customers near you will see your products first.">
             <Field label="Location / Area">
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rush" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rush pointer-events-none" />
                 <input
                   value={data.location}
                   onChange={(e) => setData({ ...data, location: e.target.value })}
                   placeholder="e.g. Yaba, Lagos"
-                  className="input pl-9"
+                  className={`${inputCls} pl-9`}
                 />
               </div>
             </Field>
@@ -105,7 +127,7 @@ export function OnboardingVendorScreen() {
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
                 placeholder="+234 803 555 0142"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="WhatsApp (optional)">
@@ -113,7 +135,7 @@ export function OnboardingVendorScreen() {
                 value={data.whatsapp}
                 onChange={(e) => setData({ ...data, whatsapp: e.target.value })}
                 placeholder="+234 803 555 0142"
-                className="input"
+                className={inputCls}
               />
             </Field>
           </Step>
@@ -145,7 +167,7 @@ export function OnboardingVendorScreen() {
               />
             </div>
 
-            <div className="mt-5 p-3 rounded-xl bg-rush-soft/40 border border-rush/20">
+            <div className="mt-5 p-3.5 rounded-xl bg-rush-soft/50 border border-rush/20">
               <p className="text-xs font-bold text-rush-deep">What happens next?</p>
               <ul className="mt-1.5 space-y-1 text-[11px] text-ink-soft">
                 <li>✓ Your store URL is created instantly</li>
@@ -165,24 +187,6 @@ export function OnboardingVendorScreen() {
         nextLabel={step === total ? "Create store" : "Continue"}
         disabled={step === 1 ? !data.businessName || !data.category : step === 2 ? !data.location || !data.phone : false}
       />
-
-      <style jsx>{`
-        .input {
-          width: 100%;
-          background: var(--muted);
-          border-radius: 0.75rem;
-          padding: 0.625rem 0.875rem;
-          font-size: 0.875rem;
-          color: var(--ink);
-          outline: none;
-        }
-        .input:focus {
-          box-shadow: 0 0 0 2px color-mix(in oklch, var(--rush) 30%, transparent);
-        }
-        .input::placeholder {
-          color: var(--ink-soft);
-        }
-      `}</style>
     </div>
   );
 }
@@ -213,14 +217,17 @@ export function OnboardingProviderScreen() {
       });
       pushToast({ title: "Application submitted!", description: "Verification takes 24-48 hours." });
       navigate("provider-dashboard");
-    } catch (err: any) {
-      pushToast({ title: "Failed to submit", description: err.message });
+    } catch (err) {
+      pushToast({
+        title: "Failed to submit",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
   return (
     <div className="pb-32 min-h-screen">
-      <BackHeader onBack={prev} title="Become a provider" step={step} total={total} />
+      <BackHeader onBack={prev} title="Become a provider" step={step} total={total} icon={<Wrench className="h-4 w-4" />} />
       <div className="px-4 pt-4">
         {step === 1 && (
           <Step title="Your business profile" sub="Tell customers what you do.">
@@ -229,7 +236,7 @@ export function OnboardingProviderScreen() {
                 value={data.businessName}
                 onChange={(e) => setData({ ...data, businessName: e.target.value })}
                 placeholder="e.g. John Electrical Services"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Tagline">
@@ -237,7 +244,7 @@ export function OnboardingProviderScreen() {
                 value={data.tagline}
                 onChange={(e) => setData({ ...data, tagline: e.target.value })}
                 placeholder="One-line summary of what you do"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Service category">
@@ -245,9 +252,12 @@ export function OnboardingProviderScreen() {
                 {["Cleaning", "Electrical", "Plumbing", "Repairs", "Beauty", "Moving"].map((c) => (
                   <button
                     key={c}
+                    type="button"
                     onClick={() => setData({ ...data, category: c })}
-                    className={`p-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
-                      data.category === c ? "border-rush bg-rush-soft/40 text-rush-deep" : "border-border text-ink"
+                    className={`p-2.5 rounded-xl border-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                      data.category === c
+                        ? "border-rush bg-rush-soft/60 text-rush-deep shadow-card"
+                        : "border-border text-ink hover:border-ink-soft/30"
                     }`}
                   >
                     {c}
@@ -265,7 +275,7 @@ export function OnboardingProviderScreen() {
                 onChange={(e) => setData({ ...data, startingPrice: e.target.value })}
                 placeholder="5000"
                 inputMode="numeric"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Location / Area">
@@ -273,7 +283,7 @@ export function OnboardingProviderScreen() {
                 value={data.location}
                 onChange={(e) => setData({ ...data, location: e.target.value })}
                 placeholder="e.g. Yaba, Lagos"
-                className="input"
+                className={inputCls}
               />
             </Field>
           </Step>
@@ -301,19 +311,6 @@ export function OnboardingProviderScreen() {
         nextLabel={step === total ? "Submit for review" : "Continue"}
         disabled={step === 1 ? !data.businessName || !data.category : step === 2 ? !data.location || !data.startingPrice : false}
       />
-      <style jsx>{`
-        .input {
-          width: 100%;
-          background: var(--muted);
-          border-radius: 0.75rem;
-          padding: 0.625rem 0.875rem;
-          font-size: 0.875rem;
-          color: var(--ink);
-          outline: none;
-        }
-        .input:focus { box-shadow: 0 0 0 2px color-mix(in oklch, var(--rush) 30%, transparent); }
-        .input::placeholder { color: var(--ink-soft); }
-      `}</style>
     </div>
   );
 }
@@ -350,8 +347,11 @@ export function OnboardingRiderScreen() {
       });
       pushToast({ title: "Application submitted!", description: "Document review takes 24-48 hours." });
       navigate("rider-dashboard");
-    } catch (err: any) {
-      pushToast({ title: "Failed to submit", description: err.message });
+    } catch (err) {
+      pushToast({
+        title: "Failed to submit",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -366,7 +366,7 @@ export function OnboardingRiderScreen() {
 
   return (
     <div className="pb-32 min-h-screen">
-      <BackHeader onBack={prev} title="Become a rider" step={step} total={total} />
+      <BackHeader onBack={prev} title="Become a rider" step={step} total={total} icon={<Bike className="h-4 w-4" />} />
       <div className="px-4 pt-4">
         {step === 1 && (
           <Step title="Personal details" sub="Tell us who you are.">
@@ -375,7 +375,7 @@ export function OnboardingRiderScreen() {
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
                 placeholder="+234 803 555 0142"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Location / Area">
@@ -383,7 +383,7 @@ export function OnboardingRiderScreen() {
                 value={data.location}
                 onChange={(e) => setData({ ...data, location: e.target.value })}
                 placeholder="Yaba, Lagos"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="What can you do?">
@@ -394,11 +394,12 @@ export function OnboardingRiderScreen() {
                 ].map((m) => (
                   <button
                     key={m.id}
+                    type="button"
                     onClick={() => toggleMobility(m.id)}
-                    className={`flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-left transition-all ${
+                    className={`flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                       data.mobility.includes(m.id)
-                        ? "border-rush bg-rush-soft/40"
-                        : "border-border"
+                        ? "border-rush bg-rush-soft/60 shadow-card"
+                        : "border-border hover:border-ink-soft/30"
                     }`}
                   >
                     <span className="text-xl">{m.icon}</span>
@@ -422,10 +423,9 @@ export function OnboardingRiderScreen() {
                 ].map((v) => (
                   <button
                     key={v.id}
+                    type="button"
                     onClick={() => setData({ ...data, vehicleType: v.id })}
-                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 ${
-                      data.vehicleType === v.id ? "border-rush bg-rush-soft/40" : "border-border"
-                    }`}
+                    className={`flex flex-col items-center gap-1 p-2.5 ${tileCls(data.vehicleType === v.id)}`}
                   >
                     <span className="text-xl">{v.icon}</span>
                     <span className="text-[10px] font-semibold text-ink">{v.label}</span>
@@ -438,7 +438,7 @@ export function OnboardingRiderScreen() {
                 value={data.plate}
                 onChange={(e) => setData({ ...data, plate: e.target.value })}
                 placeholder="LAG-482-QD"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Vehicle model">
@@ -446,7 +446,7 @@ export function OnboardingRiderScreen() {
                 value={data.vehicleModel}
                 onChange={(e) => setData({ ...data, vehicleModel: e.target.value })}
                 placeholder="e.g. Bajaj Boxer 150"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <Field label="Color">
@@ -454,7 +454,7 @@ export function OnboardingRiderScreen() {
                 value={data.color}
                 onChange={(e) => setData({ ...data, color: e.target.value })}
                 placeholder="e.g. Red"
-                className="input"
+                className={inputCls}
               />
             </Field>
           </Step>
@@ -466,7 +466,7 @@ export function OnboardingRiderScreen() {
                 value={data.licenseNumber}
                 onChange={(e) => setData({ ...data, licenseNumber: e.target.value })}
                 placeholder="LAG-MC-2024-44182"
-                className="input"
+                className={inputCls}
               />
             </Field>
             <UploadCard label="Drivers license (photo)" hint="Clear photo of front side" required />
@@ -476,16 +476,16 @@ export function OnboardingRiderScreen() {
         )}
         {step === 4 && (
           <Step title="Almost there" sub="Review and submit.">
-            <div className="rounded-2xl bg-rush-soft/40 border border-rush/20 p-4">
+            <div className="rounded-2xl bg-rush-soft/50 border border-rush/20 p-4">
               <p className="text-sm font-bold text-rush-deep mb-2">What happens next</p>
               <ol className="space-y-2 text-xs text-ink-soft">
-                <li className="flex gap-2"><span className="font-bold text-rush">1.</span> We review your documents (24-48 hours)</li>
-                <li className="flex gap-2"><span className="font-bold text-rush">2.</span> Vehicle and license verified</li>
-                <li className="flex gap-2"><span className="font-bold text-rush">3.</span> You get notified once approved</li>
-                <li className="flex gap-2"><span className="font-bold text-rush">4.</span> Go online and start earning</li>
+                <li className="flex gap-2"><span className="font-bold text-rush-deep">1.</span> We review your documents (24-48 hours)</li>
+                <li className="flex gap-2"><span className="font-bold text-rush-deep">2.</span> Vehicle and license verified</li>
+                <li className="flex gap-2"><span className="font-bold text-rush-deep">3.</span> You get notified once approved</li>
+                <li className="flex gap-2"><span className="font-bold text-rush-deep">4.</span> Go online and start earning</li>
               </ol>
             </div>
-            <div className="mt-4 p-3 rounded-xl bg-muted/40">
+            <div className="mt-4 p-3 rounded-xl bg-muted/60 border border-border">
               <p className="text-xs text-ink-soft leading-relaxed">
                 By submitting, you agree to Rush's Rider Code of Conduct and consent to background checks.
                 Daily payouts to your Rush Wallet. Service fee: 15% per completed trip.
@@ -507,19 +507,6 @@ export function OnboardingRiderScreen() {
           false
         }
       />
-      <style jsx>{`
-        .input {
-          width: 100%;
-          background: var(--muted);
-          border-radius: 0.75rem;
-          padding: 0.625rem 0.875rem;
-          font-size: 0.875rem;
-          color: var(--ink);
-          outline: none;
-        }
-        .input:focus { box-shadow: 0 0 0 2px color-mix(in oklch, var(--rush) 30%, transparent); }
-        .input::placeholder { color: var(--ink-soft); }
-      `}</style>
     </div>
   );
 }
@@ -531,30 +518,33 @@ function BackHeader({
   title,
   step,
   total,
+  icon,
 }: {
   onBack: () => void;
   title: string;
   step?: number;
   total?: number;
+  icon?: React.ReactNode;
 }) {
   return (
     <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
       <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
         <button
+          type="button"
           onClick={onBack}
-          className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center"
+          className="h-9 w-9 rounded-full bg-card border border-border shadow-card hover:bg-muted flex items-center justify-center cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           aria-label="Go back"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5 text-ink" />
         </button>
-        <div className="flex-1">
-          <h1 className="text-base font-bold text-ink">{title}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-base font-bold text-ink truncate">{title}</h1>
           {step && total && (
-            <p className="text-[10px] text-ink-soft">Step {step} of {total}</p>
+            <p className="text-[10px] font-semibold text-ink-soft">Step {step} of {total}</p>
           )}
         </div>
-        <div className="h-9 w-9 rounded-xl rush-gradient flex items-center justify-center">
-          <Store className="h-4 w-4 text-white" />
+        <div className="h-9 w-9 rounded-xl bg-rush-soft text-rush-deep flex items-center justify-center shrink-0">
+          {icon ?? <Store className="h-4 w-4" />}
         </div>
       </div>
     </div>
@@ -609,19 +599,20 @@ function VisibilityOption({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
-        active ? "border-rush bg-rush-soft/40" : "border-border hover:border-ink-soft/30"
+      className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+        active ? "border-rush bg-rush-soft/60 shadow-card" : "border-border hover:border-ink-soft/30"
       }`}
     >
-      <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-xl ${active ? "bg-rush text-white" : "bg-muted"}`}>
+      <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${active ? "bg-rush-deep text-white" : "bg-muted"}`}>
         {icon}
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-ink">{title}</p>
         <p className="text-[11px] text-ink-soft">{description}</p>
       </div>
-      {active && <Check className="h-4 w-4 text-rush" />}
+      {active && <Check className="h-4 w-4 text-rush-deep shrink-0" />}
     </button>
   );
 }
@@ -636,20 +627,23 @@ function UploadCard({
   required?: boolean;
 }) {
   return (
-    <button className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border hover:border-rush transition-colors text-left">
-      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+    <button
+      type="button"
+      className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border hover:border-rush hover:bg-rush-soft/30 transition-colors text-left cursor-pointer"
+    >
+      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
         <svg className="h-5 w-5 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.66-.9l.8-1.2a2 2 0 011.66-.9h5.9a2 2 0 011.66.9l.8 1.2a2 2 0 001.66.9H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
           <circle cx="12" cy="13" r="3" />
         </svg>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-ink">
           {label} {required && <span className="text-destructive">*</span>}
         </p>
         <p className="text-[10px] text-ink-soft">{hint}</p>
       </div>
-      <span className="text-[10px] font-semibold text-rush">Upload</span>
+      <span className="text-[10px] font-semibold text-rush-deep shrink-0">Upload</span>
     </button>
   );
 }
@@ -672,9 +666,9 @@ function CTABar({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border safe-bottom">
       <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
-        <div className="flex-1">
-          <p className="text-[10px] text-ink-soft">Step {step} of {total}</p>
-          <div className="h-1 bg-muted rounded-full mt-1 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-semibold text-ink-soft">Step {step} of {total}</p>
+          <div className="h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
             <div
               className="h-full rush-gradient transition-all"
               style={{ width: `${(step / total) * 100}%` }}
@@ -682,9 +676,10 @@ function CTABar({
           </div>
         </div>
         <button
+          type="button"
           onClick={onNext}
           disabled={loading || disabled}
-          className="h-12 px-6 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush disabled:opacity-50 flex items-center gap-1.5"
+          className="cta-primary h-12 px-6 rounded-xl text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none shrink-0"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {nextLabel}

@@ -1,17 +1,18 @@
 "use client";
 
-import { ChevronLeft, Phone, MessageCircle, Star, MapPin, Bike, Shield, Loader2, XCircle } from "lucide-react";
+import { Phone, MessageCircle, Star, MapPin, Bike, Shield, Loader2, XCircle } from "lucide-react";
 import { useRush } from "@/lib/store";
 import { useOrder, useUpdateOrderStatus } from "@/lib/hooks";
 import { naira } from "@/lib/data";
 import { BackHeader } from "./CartScreen";
+import { ErrorState } from "@/components/shared/DataState";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { customerCanCancel } from "@/lib/order-status";
 import { ApiError } from "@/lib/api-client";
 
 export function OrderTrackingScreen() {
   const { params, navigate, back, pushToast } = useRush();
-  const { data, isLoading } = useOrder(params.orderId);
+  const { data, isLoading, error, refetch } = useOrder(params.orderId);
   const updateOrderStatus = useUpdateOrderStatus();
 
   if (isLoading) {
@@ -21,6 +22,15 @@ export function OrderTrackingScreen() {
         <div className="pt-16 flex items-center justify-center text-ink-soft">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="pb-6">
+        <BackHeader title="Order tracking" onBack={back} />
+        <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -57,7 +67,7 @@ export function OrderTrackingScreen() {
       <BackHeader title={`Order ${order.code}`} onBack={back} />
 
       {/* Live status hero */}
-      <div className="mx-4 mt-4 rounded-2xl rush-gradient p-4 text-white shadow-rush relative overflow-hidden">
+      <div className="mx-4 mt-4 rounded-2xl bg-rush-deep p-4 text-white shadow-rush relative overflow-hidden">
         <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
         <div className="relative">
           <p className="text-[11px] font-semibold uppercase tracking-wider opacity-90">
@@ -85,23 +95,23 @@ export function OrderTrackingScreen() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold">{order.rider.name}</p>
                 <p className="text-[11px] opacity-90 flex items-center gap-1.5">
-                  <Bike className="h-3 w-3" /> ·
+                  <Bike className="h-3 w-3" />
                   <span className="flex items-center gap-0.5">
                     <Star className="h-3 w-3 fill-white" /> {order.rider.rating}
                   </span>
                 </p>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => pushToast({ title: "Calling rider…" })}
-                  className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center"
+                  className="h-9 w-9 rounded-full bg-background text-ink flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   aria-label="Call rider"
                 >
                   <Phone className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => pushToast({ title: "Opening chat…" })}
-                  className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center"
+                  className="h-9 w-9 rounded-full bg-background text-ink flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   aria-label="Chat rider"
                 >
                   <MessageCircle className="h-4 w-4" />
@@ -114,19 +124,19 @@ export function OrderTrackingScreen() {
 
       {/* Map placeholder */}
       {!isDelivered && (
-        <div className="mx-4 mt-4 rounded-2xl overflow-hidden h-32 bg-gradient-to-br from-emerald-50 to-emerald-100 relative">
+        <div className="mx-4 mt-4 rounded-2xl overflow-hidden h-32 bg-gradient-to-br from-rush-soft/60 to-muted relative">
           <div
-            className="absolute inset-0 opacity-30"
+            className="absolute inset-0 opacity-40"
             style={{
               backgroundImage: `
-                linear-gradient(90deg, transparent 49%, #d1d5db 49%, #d1d5db 51%, transparent 51%),
-                linear-gradient(0deg, transparent 49%, #d1d5db 49%, #d1d5db 51%, transparent 51%)
+                linear-gradient(90deg, transparent 49%, var(--border) 49%, var(--border) 51%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, var(--border) 49%, var(--border) 51%, transparent 51%)
               `,
               backgroundSize: "32px 32px",
             }}
           />
           <div className="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center">
-            <div className="h-3 w-3 rounded-full bg-rush ring-2 ring-white" />
+            <div className="h-3 w-3 rounded-full bg-rush-deep ring-2 ring-white" />
           </div>
           <div className="absolute top-1/2 right-4 -translate-y-1/2">
             <MapPin className="h-6 w-6 text-ink fill-ink/30" />
@@ -138,7 +148,7 @@ export function OrderTrackingScreen() {
           >
             <path
               d="M 10 50 Q 50 20 90 50"
-              stroke="#FF6B1A"
+              stroke="var(--rush-deep)"
               strokeWidth="2"
               strokeDasharray="4 3"
               fill="none"
@@ -163,7 +173,7 @@ export function OrderTrackingScreen() {
                       isCompleted
                         ? "bg-success text-white"
                         : isCurrent
-                        ? "bg-rush text-white ring-4 ring-rush/20"
+                        ? "bg-rush-deep text-white ring-4 ring-rush-deep/25"
                         : "bg-muted text-ink-soft"
                     }`}
                   >
@@ -176,7 +186,7 @@ export function OrderTrackingScreen() {
                 <div className="pb-4">
                   <p
                     className={`text-sm ${
-                      isCompleted ? "font-semibold text-ink" : isCurrent ? "font-bold text-rush" : "text-ink-soft"
+                      isCompleted ? "font-semibold text-ink" : isCurrent ? "font-bold text-rush-deep" : "text-ink-soft"
                     }`}
                   >
                     {step.label}
@@ -194,7 +204,7 @@ export function OrderTrackingScreen() {
           <button
             onClick={handleCancel}
             disabled={updateOrderStatus.isPending}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-destructive/10 text-destructive text-sm font-bold disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-bold disabled:opacity-60 cursor-pointer transition-colors hover:bg-destructive/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {updateOrderStatus.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -212,7 +222,7 @@ export function OrderTrackingScreen() {
           <h3 className="text-sm font-bold text-ink">Items</h3>
           <button
             onClick={() => navigate("store", { storeSlug: order.vendorSlug })}
-            className="text-xs font-semibold text-rush"
+            className="text-xs font-semibold text-rush hover:text-rush-deep cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded"
           >
             View store
           </button>

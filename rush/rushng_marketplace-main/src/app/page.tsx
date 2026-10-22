@@ -4,6 +4,7 @@ import { useRush } from "@/lib/store";
 import { useMe } from "@/lib/hooks";
 import { AuthHydrator } from "@/components/AuthHydrator";
 import { PaymentReturnHandler } from "@/components/PaymentReturnHandler";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { TopBar } from "@/components/layout/TopBar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { DesktopSideNav } from "@/components/layout/DesktopSideNav";
@@ -111,7 +112,7 @@ const PROTECTED: string[] = [
 export default function HomePage() {
   const view = useRush((s) => s.view);
   const user = useRush((s) => s.user);
-  const { isLoading: meLoading, data: meData } = useMe();
+  const { isLoading: meLoading } = useMe();
 
   // Show auth screen if user tries to access protected route without login
   const isProtected = PROTECTED.includes(view);
@@ -167,6 +168,8 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <AuthHydrator />
+        {/* Failure notices from /api/auth/verify land logged-out → here */}
+        <EmailVerificationBanner />
         <LandingScreen />
         <Toasts />
       </div>
@@ -190,6 +193,8 @@ export default function HomePage() {
 
         {/* Main scrollable content */}
         <main className={`flex-1 min-w-0 mx-auto w-full ${CONTENT_WIDTH} pb-20 lg:pb-10`}>
+          {/* Success returns from /api/auth/verify land logged-in → here */}
+          <EmailVerificationBanner />
           {showAuth ? (
             <AuthScreen />
           ) : (

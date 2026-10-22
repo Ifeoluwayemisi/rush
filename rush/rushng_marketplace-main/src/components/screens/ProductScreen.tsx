@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, Star, MapPin, Minus, Plus, ShoppingBag, Store, Heart, Share2, Shield, Loader2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ChevronLeft, Star, MapPin, Minus, Plus, ShoppingBag, Store, Heart, Share2, Shield, ShieldCheck, BadgeCheck, Truck, Zap, Loader2 } from "lucide-react";
 import { useRush } from "@/lib/store";
 import { CONTENT_WIDTH } from "@/lib/layout";
 import { useProduct } from "@/lib/hooks";
 import { naira } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ErrorState } from "@/components/shared/DataState";
 
 export function ProductScreen() {
   const { params, navigate, back, addToCart, pushToast } = useRush();
-  const { data, isLoading } = useProduct(params.productId);
+  const { data, isLoading, error, refetch } = useProduct(params.productId);
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -18,6 +19,14 @@ export function ProductScreen() {
     return (
       <div className="pt-20 flex items-center justify-center text-ink-soft">
         <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="pt-20">
+        <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -78,7 +87,7 @@ export function ProductScreen() {
         <div className="absolute top-0 left-0 right-0 px-4 pt-3 pb-3 flex items-center justify-between bg-gradient-to-b from-ink/30 to-transparent">
           <button
             onClick={back}
-            className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+            className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             aria-label="Go back"
           >
             <ChevronLeft className="h-5 w-5 text-ink" />
@@ -86,14 +95,14 @@ export function ProductScreen() {
           <div className="flex gap-1.5">
             <button
               onClick={() => pushToast({ title: "Saved to wishlist" })}
-              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               aria-label="Save"
             >
               <Heart className="h-5 w-5 text-ink" />
             </button>
             <button
               onClick={() => pushToast({ title: "Link copied" })}
-              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+              className="h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               aria-label="Share"
             >
               <Share2 className="h-5 w-5 text-ink" />
@@ -108,7 +117,7 @@ export function ProductScreen() {
               <button
                 key={i}
                 onClick={() => setActiveImage(i)}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 rounded-full transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                   i === activeImage ? "w-5 bg-white" : "w-1.5 bg-white/60"
                 }`}
                 aria-label={`Image ${i + 1}`}
@@ -124,7 +133,7 @@ export function ProductScreen() {
         {vendor && (
           <button
             onClick={() => navigate("store", { storeSlug: vendor.slug })}
-            className="w-full flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/60 mb-3 hover:bg-muted transition-colors"
+            className="w-full flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/60 mb-3 hover:bg-muted transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar className="h-8 w-8 rounded-lg">
               {vendor.logo && <AvatarImage src={vendor.logo} alt={vendor.businessName} />}
@@ -172,7 +181,7 @@ export function ProductScreen() {
           {product.condition && (
             <>
               <span className="text-ink-soft">·</span>
-              <span className="px-1.5 py-0.5 rounded bg-muted text-ink-soft font-medium">
+              <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-[10px] text-ink-soft font-semibold">
                 {product.condition.replace("_", " ")}
               </span>
             </>
@@ -181,8 +190,9 @@ export function ProductScreen() {
 
         {/* Stock alert */}
         {product.stock <= 4 && (
-          <div className="mt-3 px-3 py-2 rounded-lg bg-warning/10 text-warning text-xs font-medium">
-            ⚡ Only {product.stock} left in stock
+          <div className="mt-3 px-3 py-2.5 rounded-xl bg-warning/10 border border-warning/20 text-warning text-xs font-semibold flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 shrink-0 fill-warning" />
+            Only {product.stock} left in stock
           </div>
         )}
 
@@ -198,16 +208,16 @@ export function ProductScreen() {
           <div className="flex items-center gap-3 bg-muted rounded-lg p-1">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="h-7 w-7 rounded-md bg-background flex items-center justify-center shadow-sm"
-              aria-label="Decrease"
+              className="h-7 w-7 rounded-md bg-background flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label="Decrease quantity"
             >
               <Minus className="h-3.5 w-3.5" />
             </button>
-            <span className="text-sm font-bold w-5 text-center">{qty}</span>
+            <span className="text-sm font-bold w-5 text-center" aria-live="polite">{qty}</span>
             <button
               onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
-              className="h-7 w-7 rounded-md bg-background flex items-center justify-center shadow-sm"
-              aria-label="Increase"
+              className="h-7 w-7 rounded-md bg-background flex items-center justify-center shadow-sm cursor-pointer transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label="Increase quantity"
             >
               <Plus className="h-3.5 w-3.5" />
             </button>
@@ -216,9 +226,9 @@ export function ProductScreen() {
 
         {/* Trust badges */}
         <div className="mt-5 grid grid-cols-3 gap-2">
-          <TrustBadge icon="🛡️" label="Rush protected" />
-          <TrustBadge icon="🚚" label={vendor?.deliveryEnabled ? "Delivery available" : "Pickup only"} />
-          <TrustBadge icon="✅" label={vendor?.verified ? "Verified vendor" : "New vendor"} />
+          <TrustBadge icon={<ShieldCheck className="h-5 w-5" />} label="Rush protected" />
+          <TrustBadge icon={<Truck className="h-5 w-5" />} label={vendor?.deliveryEnabled ? "Delivery available" : "Pickup only"} />
+          <TrustBadge icon={<BadgeCheck className="h-5 w-5" />} label={vendor?.verified ? "Verified vendor" : "New vendor"} />
         </div>
       </div>
 
@@ -227,14 +237,14 @@ export function ProductScreen() {
         <div className={`mx-auto ${CONTENT_WIDTH} px-4 py-3 flex items-center gap-3`}>
           <button
             onClick={handleAddToCart}
-            className="flex-1 h-12 rounded-xl bg-muted text-ink font-semibold text-sm flex items-center justify-center gap-2"
+            className="cta-secondary flex-1 min-w-0 h-12 rounded-xl text-sm"
           >
-            <ShoppingBag className="h-4 w-4" />
-            Add to cart
+            <ShoppingBag className="h-4 w-4 shrink-0" />
+            <span className="truncate">Add to cart</span>
           </button>
           <button
             onClick={handleBuyNow}
-            className="flex-1 h-12 rounded-xl rush-gradient text-white font-bold text-sm shadow-rush"
+            className="cta-primary flex-1 min-w-0 h-12 rounded-xl text-sm whitespace-nowrap"
           >
             Buy now · {naira(product.price * qty)}
           </button>
@@ -244,10 +254,10 @@ export function ProductScreen() {
   );
 }
 
-function TrustBadge({ icon, label }: { icon: string; label: string }) {
+function TrustBadge({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/60 text-center">
-      <span className="text-lg">{icon}</span>
+    <div className="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-muted/60 text-center">
+      <span className="text-rush-deep">{icon}</span>
       <span className="text-[10px] font-medium text-ink-soft leading-tight">{label}</span>
     </div>
   );

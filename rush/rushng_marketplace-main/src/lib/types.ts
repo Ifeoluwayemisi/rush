@@ -68,6 +68,9 @@ export interface User {
   firebaseUid?: string | null;
   name: string;
   email: string;
+  /** Server-confirmed email verification state (from /api/auth/me).
+   * Optional because only the session endpoint returns it. */
+  emailVerified?: boolean;
   phone: string;
   avatar: string;
   location: string;

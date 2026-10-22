@@ -1,6 +1,8 @@
 "use client";
 
+import type * as React from "react";
 import { Loader2, AlertCircle, RefreshCw, PackageOpen } from "lucide-react";
+import { EmptyState as CardEmptyState } from "./Cards";
 
 /**
  * Standard 4-state pattern for every data-driven screen in RUSH.
@@ -106,12 +108,12 @@ export function ErrorState({
 
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-      <AlertCircle className="h-8 w-8 text-amber-500 mb-2" />
+      <AlertCircle className="h-8 w-8 text-warning mb-2" />
       <p className="text-sm font-medium text-ink mb-1">{appErr.message}</p>
       {onRetry && appErr.retry !== false && (
         <button
           onClick={onRetry}
-          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ink text-white text-xs font-semibold"
+          className="mt-3 cta-primary rounded-xl px-4 py-2 text-xs cursor-pointer"
         >
           <RefreshCw className="h-3.5 w-3.5" /> Try again
         </button>
@@ -124,6 +126,11 @@ export function ErrorState({
  * Standard empty state for screens where "nothing here yet" is the
  * right message. Can be customized per-screen via the `title` and
  * `message` props.
+ *
+ * Delegates to the canonical EmptyState in shared/Cards so both
+ * import paths render identical visuals. The `message`/`action` prop
+ * names are preserved for backward compatibility with existing
+ * call sites (ActivityScreen etc.).
  */
 export function EmptyState({
   icon,
@@ -137,12 +144,12 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-      {icon ?? <PackageOpen className="h-8 w-8 text-ink-soft mb-2 opacity-50" />}
-      <p className="text-sm font-semibold text-ink">{title}</p>
-      {message && <p className="text-xs text-ink-soft mt-1 max-w-xs">{message}</p>}
-      {action && <div className="mt-3">{action}</div>}
-    </div>
+    <CardEmptyState
+      icon={icon ?? <PackageOpen className="h-7 w-7" />}
+      title={title}
+      description={message}
+      action={action}
+    />
   );
 }
 

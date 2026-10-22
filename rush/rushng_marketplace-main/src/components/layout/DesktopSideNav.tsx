@@ -18,8 +18,10 @@ export function DesktopSideNav() {
           <button
             key={tab.id}
             onClick={() => navigate(tab.id)}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-              isActive ? "bg-rush-soft text-rush" : "text-ink-soft hover:bg-muted hover:text-ink"
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
+              isActive
+                ? "bg-rush-soft text-rush hover:bg-rush-soft/80 hover:text-rush"
+                : "text-ink-soft hover:bg-muted hover:text-ink"
             }`}
             aria-current={isActive ? "page" : undefined}
           >
